@@ -1,0 +1,7 @@
+---
+- hosts: centos
+  become: true
+  tasks:
+  - name: disable selinux
+    selinux:
+      state: disabled
