@@ -23,12 +23,12 @@ Vagrant.configure("2") do |config|
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # NOTE: This will enable public access to the opened port
-  # config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.network "forwarded_port", guest: 80, host: 8080, auto_correct: true
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine and only allow access
   # via 127.0.0.1 to disable public access
-  # config.vm.network "forwarded_port", guest: 80, host: 8080, host_ip: "127.0.0.1"
+  # config.vm.network "forwarded_port", guest: 8080, host: 8000, host_ip: "127.0.0.1"
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
@@ -74,7 +74,7 @@ Vagrant.configure("2") do |config|
     #   t.info = 'before the provisioning'
     # end
 
-    centos.vm.provision "file", source: "./data", destination: "$HOME/remote/vagrant"
+    centos.vm.provision "file", source: "./rest-app", destination: "$HOME/app"
 
     centos.vm.provision "shell", inline: <<-SCRIPT
       echo working
@@ -83,18 +83,22 @@ Vagrant.configure("2") do |config|
 
     centos.vm.provision :reload
 
-    centos.vm.provision "shell", inline: <<-SCRIPT
-      echo after reload
-      yum install -y epel-release
-      yum install -y python-pip
-      pip install --upgrade pip
-      pip install flask
-    SCRIPT
+    centos.vm.provision "ansible_local" do |ansible|
+      ansible.playbook = 'main.yml'
+      ansible.install_mode = 'pip'
+    end
 
-    # centos.vm.provision "ansible_local" do |ansible|
-    #   ansible.playbook = 'main.yml'
-    #   ansible.install_mode = 'pip_args_only'
-    #   ansible.pip_args = '-r /remote/vagrant/requirements.txt'
-    # end
+    centos.vm.provision "shell", inline: <<-SCRIPT
+      pip install flask
+      SCRIPT
+    # python /home/vagrant/app/main.py
+    # yum install gcc gcc-c++ make python-devel
+    # pip install uwsgi
+    # cd /home/vagrant/app
+    # uwsgi --socket 0.0.0.0:80 --protocol=http -w main:app
+
+    # pip install gunicorn
+    # cd /home/vagrant/app
+    # gunicorn -w 15 -b 0.0.0.0:80 -D main:app
   end
 end

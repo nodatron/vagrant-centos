@@ -38,3 +38,5 @@ need to open up the port using port forwarding
 
 
 need to install vagrant-reload before being able to run the box
+
+need to look into using nginx with uwsgi for hosting the python app
