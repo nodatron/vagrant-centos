@@ -76,21 +76,27 @@ Vagrant.configure("2") do |config|
 
     centos.vm.provision "file", source: "./rest-app", destination: "$HOME/app"
 
-    centos.vm.provision "shell", inline: <<-SCRIPT
-      echo working
-      yum update -y
-    SCRIPT
+    # centos.vm.provision "shell", inline: <<-SCRIPT
+    #   echo working
+    #   yum update -y
+    # SCRIPT
 
-    centos.vm.provision :reload
+    # centos.vm.provision :reload
 
     centos.vm.provision "ansible_local" do |ansible|
       ansible.playbook = 'main.yml'
       ansible.install_mode = 'pip'
     end
 
-    centos.vm.provision "shell", inline: <<-SCRIPT
-      pip install flask
-      SCRIPT
+    centos.vm.provision :reload
+
+    centos.vm.provision "ansible_local" do |ansible|
+      ansible.playbook = 'after.yml'
+    end
+
+    # centos.vm.provision "shell", inline: <<-SCRIPT
+    #   pip install flask
+    # SCRIPT
     # python /home/vagrant/app/main.py
     # yum install gcc gcc-c++ make python-devel
     # pip install uwsgi

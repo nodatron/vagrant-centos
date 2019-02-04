@@ -1,0 +1,20 @@
+---
+- hosts: centos
+  become: true
+  tasks:
+  - name: install required yum packages
+    yum:
+      name:
+        - gcc
+        - gcc-c++
+        - make
+        - python-devel
+      state: latest
+  - name: install required pip packages
+    pip:
+      name:
+        - flask
+        - gunicorn
+      state: latest
+  - name: run the server
+    shell: cd /home/vagrant/app && gunicorn -w 15 -b 0.0.0.0:80 -D main:app
