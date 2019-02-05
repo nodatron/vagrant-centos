@@ -8,18 +8,11 @@
         - httpd
         - mod_wsgi
       state: latest
-  - name: enable httpd and firewalld
-    systemd:
-      name: "{{ item }}"
-      enabled: yes
-      masked: no
-    with_items:
-      - httpd
-      - firewalld
   - name: make sure httpd and firewalld is started
     systemd:
-      name: firewalld
+      name: "{{ item }}"
       state: started
+      enabled: yes
     with_items:
       - firewalld
       - httpd
@@ -27,24 +20,18 @@
     shell: firewall-cmd --permanent --add-service=http
   - name: Reload for HTTP change to take effect
     shell: firewall-cmd --reload
-  - name: Create all the requird files and folders making sure apache is the owner
-    file:
-      path: "{{ item.path }}"
-      state: "{{ item.state }}"
-      owner: "{{ item.owner }}"
-      group: "{{ item.owner }}"
-    with_items:
-      - { path: '/var/www/python', state: directory, owner: root }
-      - { path: '/var/www/python/helloworld.py', state: touch, owner: root }
-      - { path: '/etc/httpd/conf.d/helloworld.conf', state: touch, owner: root}
-  - name: Write into helloworld.conf
+  - name: Copy python project over
+    copy:
+      src: ./files/python/
+      dest: /var/www/python
+      owner: apache
+      group: apache
+  - name: Copy over configuration file for httpd
     copy:
       src: "./files/helloworld.conf"
       dest: /etc/httpd/conf.d/helloworld.conf
-  - name: Write into the python file
-    copy:
-      src: './files/helloworld.py'
-      dest: '/var/www/python/helloworld.py'
+      owner: apache
+      group: apache
   - name: Restart httpd for configuration changes to take effect
     systemd:
       state: restarted
