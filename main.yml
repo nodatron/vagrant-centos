@@ -2,32 +2,7 @@
 - hosts: centos
   become: true
   tasks:
-  - name: update the system
+  - name: update all the packages on the system
     yum:
       name: '*'
       state: latest
-  # - name: restart the system
-  #   shell: "sleep 5 & reboot"
-  #   async: 0
-  #   poll: 0
-  # - name: wait for the system to reboot
-  #   wait_for_connection:
-  #     connect_timeout: 20
-  #     sleep: 10
-  #     delay: 60
-  #     timeout: 300
-  # # - name: reboot
-  # #   shell: 'sleep 5 && reboot'
-  # #   async: 1
-  # #   poll: 0
-  # # - name: wait for 15 seconds
-  # #   pause:
-  # #     seconds: 15
-  # # - name: wait for restart
-  # #   wait_for_connection:
-  # #     connect_timeout: 20
-  # #     sleep: 5
-  # #     delay: 5
-  # #     timeout: 60
-  # - name: echo
-  #   shell: 'echo hello it is done'

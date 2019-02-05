@@ -2,19 +2,65 @@
 - hosts: centos
   become: true
   tasks:
-  - name: install required yum packages
+  # TODO: need to see if this is needed for gunicorn to be used
+  - name: install httpd
     yum:
       name:
-        - gcc
-        - gcc-c++
-        - make
-        - python-devel
+        - httpd
       state: latest
-  - name: install required pip packages
-    pip:
-      name:
-        - flask
-        - gunicorn
+  - name: enable httpd
+    systemd:
+      name: httpd
+      enabled: yes
+      masked: no
+  - name: make sure firewalld is enabled
+    systemd:
+      name: firewalld
+      enabled: yes
+      masked: no
+  - name: make sure firewalld is started
+    systemd:
+      name: firewalld
+      state: started
+  - name: install mod_wsgi
+    yum:
+      name: mod_wsgi
       state: latest
-  - name: run the server
-    shell: cd /home/vagrant/app && gunicorn -w 15 -b 0.0.0.0:80 -D main:app
+  - name: make sure httpd is started
+    systemd:
+      state: started
+      name: httpd
+  - name: open up firewall to http
+    shell: firewall-cmd --permanent --add-service=http
+  - name: reload firewall
+    shell: firewall-cmd --reload
+  - name: create the required files and folders
+    file:
+      path: "{{ item.path }}"
+      state: "{{ item.state }}"
+      owner: "{{ item.owner }}"
+      group: "{{ item.owner }}"
+    with_items:
+      - { path: '/var/www/python', state: directory, owner: apache }
+      - { path: '/var/www/python/helloworld.py', state: touch, owner: apache }
+      - { path: '/etc/httpd/conf.d/helloworld.conf', state: touch, owner: apache}
+  - name: Write content into httpd conf file
+    copy:
+      src: "./files/helloworld.conf"
+      dest: /etc/httpd/conf.d/helloworld.conf
+  # add in the copying of the python file 
+  - name: Write content into python file
+    copy:
+      src: './files/helloworld.py'
+      dest: '/var/www/python/helloworld.py'
+  - name: restart httpd so the changes will take effect
+    systemd:
+      state: restarted
+      name: httpd
+  # - name: install required pip packages
+  #   pip:
+  #     name:
+  #       - virtualenv
+  #     state: latest
+  # - name: run the server
+  #   shell: cd /home/vagrant/app && gunicorn -w 15 -b 0.0.0.0:80 -D main:app

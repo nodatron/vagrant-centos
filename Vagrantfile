@@ -64,7 +64,7 @@ Vagrant.configure("2") do |config|
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
   config.vm.define 'centos' do |centos|
-    centos.vm.hostname = 'centos'
+    centos.vm.hostname = 'centos.test'
 
     # centos.trigger.after :up do |trigger|
     #   trigger.info = 'done up command'
@@ -74,7 +74,7 @@ Vagrant.configure("2") do |config|
     #   t.info = 'before the provisioning'
     # end
 
-    centos.vm.provision "file", source: "./rest-app", destination: "$HOME/app"
+    # centos.vm.provision "file", source: "./rest-app", destination: "$HOME/app"
 
     # centos.vm.provision "shell", inline: <<-SCRIPT
     #   echo working

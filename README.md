@@ -40,3 +40,33 @@ need to open up the port using port forwarding
 need to install vagrant-reload before being able to run the box
 
 need to look into using nginx with uwsgi for hosting the python app
+
+
+run a flask app using nginx and gunicorn
+update all the repos
+install pip and nginx
+  - pip installed with ansible
+  - nginx install epel-release
+    - then you can install nginx
+nginx:
+  - start the server
+    sudo service httpd stop
+    sudo systemctl disable httpd
+    sudo service nginx start
+    <!-- sudo rm /etc/nginx/sites-enabled/default -->
+    sudo mkdir /etc/nginx/sites-enabled
+    sudo mkdir /etc/nginx/sites-available
+    sudo touch /etc/nginx/sites-available/flask_settings
+    sudo ln -s /etc/nginx/sites-available/flask_settings /etc/nginx/sites-enabled/flask_settings
+    <!-- add the following the flask_settings file -->
+    server {
+      listen 80;
+      server_name localhost;
+      location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+      }
+    }
+  -restart nginx
+    sudo service nginx restart
