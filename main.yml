@@ -2,7 +2,7 @@
 - hosts: centos
   become: true
   tasks:
-  - name: update all the packages on the system
+  - name: Update the packages in the system
     yum:
       name: '*'
       state: latest

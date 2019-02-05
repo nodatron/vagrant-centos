@@ -2,65 +2,50 @@
 - hosts: centos
   become: true
   tasks:
-  # TODO: need to see if this is needed for gunicorn to be used
-  - name: install httpd
+  - name: Install httpd and mod_wsgi
     yum:
       name:
         - httpd
+        - mod_wsgi
       state: latest
-  - name: enable httpd
+  - name: enable httpd and firewalld
     systemd:
-      name: httpd
+      name: "{{ item }}"
       enabled: yes
       masked: no
-  - name: make sure firewalld is enabled
-    systemd:
-      name: firewalld
-      enabled: yes
-      masked: no
-  - name: make sure firewalld is started
+    with_items:
+      - httpd
+      - firewalld
+  - name: make sure httpd and firewalld is started
     systemd:
       name: firewalld
       state: started
-  - name: install mod_wsgi
-    yum:
-      name: mod_wsgi
-      state: latest
-  - name: make sure httpd is started
-    systemd:
-      state: started
-      name: httpd
-  - name: open up firewall to http
+    with_items:
+      - firewalld
+      - httpd
+  - name: Allow HTTP requests to the server
     shell: firewall-cmd --permanent --add-service=http
-  - name: reload firewall
+  - name: Reload for HTTP change to take effect
     shell: firewall-cmd --reload
-  - name: create the required files and folders
+  - name: Create all the requird files and folders making sure apache is the owner
     file:
       path: "{{ item.path }}"
       state: "{{ item.state }}"
       owner: "{{ item.owner }}"
       group: "{{ item.owner }}"
     with_items:
-      - { path: '/var/www/python', state: directory, owner: apache }
-      - { path: '/var/www/python/helloworld.py', state: touch, owner: apache }
-      - { path: '/etc/httpd/conf.d/helloworld.conf', state: touch, owner: apache}
-  - name: Write content into httpd conf file
+      - { path: '/var/www/python', state: directory, owner: root }
+      - { path: '/var/www/python/helloworld.py', state: touch, owner: root }
+      - { path: '/etc/httpd/conf.d/helloworld.conf', state: touch, owner: root}
+  - name: Write into helloworld.conf
     copy:
       src: "./files/helloworld.conf"
       dest: /etc/httpd/conf.d/helloworld.conf
-  # add in the copying of the python file 
-  - name: Write content into python file
+  - name: Write into the python file
     copy:
       src: './files/helloworld.py'
       dest: '/var/www/python/helloworld.py'
-  - name: restart httpd so the changes will take effect
+  - name: Restart httpd for configuration changes to take effect
     systemd:
       state: restarted
       name: httpd
-  # - name: install required pip packages
-  #   pip:
-  #     name:
-  #       - virtualenv
-  #     state: latest
-  # - name: run the server
-  #   shell: cd /home/vagrant/app && gunicorn -w 15 -b 0.0.0.0:80 -D main:app
