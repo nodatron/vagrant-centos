@@ -17,9 +17,11 @@
       - firewalld
       - httpd
   - name: Allow HTTP requests to the server
-    shell: firewall-cmd --permanent --add-service=http
-  - name: Reload for HTTP change to take effect
-    shell: firewall-cmd --reload
+    firewalld:
+      service: http
+      state: enabled
+      permanent: yes
+      immediate: yes
   - name: Copy python project over
     copy:
       src: ./files/python/
@@ -34,5 +36,5 @@
       group: apache
   - name: Restart httpd for configuration changes to take effect
     systemd:
-      state: restarted
+      state: reloaded
       name: httpd

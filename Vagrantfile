@@ -9,7 +9,6 @@ Vagrant.configure("2") do |config|
 
     centos.vm.provision "ansible_local" do |ansible|
       ansible.playbook = 'main.yml'
-      ansible.install_mode = 'pip'
     end
 
     centos.vm.provision :reload
